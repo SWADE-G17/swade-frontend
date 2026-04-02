@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@niivue/niivue": "^0.68.1",
+    "@supabase/supabase-js": "^2.101.1",
     "next": "^16.2.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"

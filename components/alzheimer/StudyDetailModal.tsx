@@ -197,7 +197,16 @@ export default function StudyDetailModal({
                       {resolvedReportUrl && (
                         <button
                           type="button"
-                          onClick={() => openPdfInNewTab(result.reportPath)}
+                          onClick={() => {
+                            setDownloadError(null);
+                            openPdfInNewTab(result.reportPath).catch((err) => {
+                              setDownloadError(
+                                err instanceof Error
+                                  ? err.message
+                                  : "No se pudo abrir el reporte.",
+                              );
+                            });
+                          }}
                           className="inline-flex items-center justify-center rounded-xl border border-[#5D5FEF]/40 bg-white px-3 py-2 text-xs font-medium text-[#2B2B5F] transition hover:bg-[#5D5FEF]/10"
                         >
                           View report PDF

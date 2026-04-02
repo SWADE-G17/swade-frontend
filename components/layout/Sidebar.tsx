@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 
 function IconDashboard({ className }: { className?: string }) {
   return (
@@ -85,6 +86,25 @@ function IconReport({ className }: { className?: string }) {
   );
 }
 
+function IconLogout({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+}
+
 type NavItem = {
   href: string;
   label: string;
@@ -104,9 +124,12 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
+
+  const displayName = user?.email?.split("@")[0] ?? "Usuario";
 
   return (
-    <aside className="w-72 shrink-0 border-r border-zinc-200 bg-white">
+    <aside className="flex w-72 shrink-0 flex-col border-r border-zinc-200 bg-white">
       <div className="flex items-start gap-2 px-4 py-4">
         <button
           type="button"
@@ -131,16 +154,16 @@ export default function Sidebar() {
               className="h-5 w-5"
               aria-hidden="true"
             >
-              <path d="M12 2a9 9 0 0 1 0 18a9 9 0 0 1 0-18z" />
-              <path d="M8 12h6" />
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
             </svg>
           </div>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold text-zinc-900">
-              Daniel Perez
+              {displayName}
             </div>
             <div className="truncate text-[11px] text-zinc-500">
-              Administrator
+              {user?.email ?? ""}
             </div>
           </div>
         </div>
@@ -172,7 +195,17 @@ export default function Sidebar() {
           })}
         </nav>
       </div>
+
+      <div className="mt-auto px-4 pb-4">
+        <button
+          type="button"
+          onClick={signOut}
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-700 transition hover:bg-red-50 hover:text-red-600"
+        >
+          <IconLogout className="h-4 w-4" />
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
     </aside>
   );
 }
-
