@@ -112,71 +112,68 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#1a1145] via-[#1e1554] to-[#2a1a6b] px-4">
-      <div className="w-full max-w-sm">
-        <h1 className="mb-10 text-center font-serif text-4xl font-bold tracking-widest text-white">
-          SWADE
-        </h1>
+    <div
+      className="flex min-h-screen bg-cover bg-center"
+      style={{ backgroundImage: "url('/images/image.png')" }}
+    >
+      <div className="hidden lg:block lg:flex-[3]" />
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="relative">
-            <input
-              type="email"
-              placeholder="Usuario"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 pr-12 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus:border-[#2d7a8a] focus:ring-2 focus:ring-[#2d7a8a]/30"
-            />
-            <UserIcon className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-          </div>
+      <div className="flex w-full flex-col items-center justify-center px-10 lg:flex-[2]">
+        <div className="w-full max-w-xs">
+          <h1 className="mb-10 text-center font-serif text-4xl font-bold tracking-widest text-white">
+            SWADE
+          </h1>
 
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 pr-12 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus:border-[#2d7a8a] focus:ring-2 focus:ring-[#2d7a8a]/30"
-            />
-            {showPassword ? (
-              <EyeIcon
-                className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
-                onClick={() => setShowPassword(false)}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative">
+              <input
+                type="email"
+                placeholder="Usuario"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 pr-12 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus:border-[#2d7a8a] focus:ring-2 focus:ring-[#2d7a8a]/30"
               />
-            ) : (
-              <EyeOffIcon
-                className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
-                onClick={() => setShowPassword(true)}
-              />
-            )}
-          </div>
-
-          {error && (
-            <div className="rounded-md border border-red-300/40 bg-red-500/20 px-4 py-2 text-center text-sm text-red-200">
-              {error}
+              <UserIcon className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-[#1a5c6b] py-3 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-[#1d6d7e] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? "Ingresando..." : "Entrar"}
-          </button>
-        </form>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 pr-12 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus:border-[#2d7a8a] focus:ring-2 focus:ring-[#2d7a8a]/30"
+              />
+              {showPassword ? (
+                <EyeIcon
+                  className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowPassword(false)}
+                />
+              ) : (
+                <EyeOffIcon
+                  className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowPassword(true)}
+                />
+              )}
+            </div>
 
-        <p className="mt-6 text-center text-sm text-gray-400">
-          ¿No tienes cuenta?{" "}
-          <Link
-            href="/signup"
-            className="font-medium text-[#5fcdd9] underline-offset-2 hover:underline"
-          >
-            Regístrate
-          </Link>
-        </p>
+            {error && (
+              <div className="rounded-md border border-red-300/40 bg-red-500/20 px-4 py-2 text-center text-sm text-red-200">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-md bg-[#1a5c6b] py-3 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-[#1d6d7e] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Ingresando..." : "Entrar"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

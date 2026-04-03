@@ -68,10 +68,10 @@ export default function AlzheimerPredictionsPage() {
 
   return (
     <div className="min-h-screen px-6 py-6">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-800">
               Alzheimer Predictions
             </h2>
             <p className="mt-1 text-xs text-zinc-400">{headerSubtitle}</p>
@@ -105,23 +105,14 @@ export default function AlzheimerPredictionsPage() {
               className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-[#5D5FEF]/60 focus:ring-2 focus:ring-[#5D5FEF]/20"
             />
           </div>
-
-          <div className="hidden items-center gap-2 md:flex">
-            <button className="rounded-xl border border-zinc-200 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">
-              Filter
-            </button>
-            <button className="rounded-xl border border-zinc-200 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">
-              Sort By: Recent
-            </button>
-          </div>
         </div>
-
-        <StudiesTable
-          studies={studies}
-          predictionById={predictionById}
-          onOpenDetails={(id) => setDetailsStudyId(id)}
-        />
-      </div>
+        <div className="border border-zinc-200 bg-white p-5 shadow-sm mt-4">
+          <StudiesTable
+            studies={studies}
+            predictionById={predictionById}
+            onOpenDetails={(id) => setDetailsStudyId(id)}
+          />
+        </div>
 
       {uploadOpen && (
         <UploadNewPredictionModal

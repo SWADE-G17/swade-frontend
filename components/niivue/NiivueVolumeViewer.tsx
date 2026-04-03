@@ -1,48 +1,69 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Niivue } from "@niivue/niivue";
 
-/**
- * MPR layout: axial grande a la izquierda; coronal (arriba) y sagital (abajo) a la derecha.
- * Posiciones normalizadas [left, top, width, height] en 0–1 (API Niivue `setCustomLayout`).
- */
+type PrimarySlice = "axial" | "coronal" | "sagittal";
+
 const MPR_LAYOUT_LEFT_FRACTION = 0.62;
 
-function applyMprLayout(nv: Niivue) {
+function applyMprLayout(nv: Niivue, primary: PrimarySlice) {
   const left = MPR_LAYOUT_LEFT_FRACTION;
   const right = 1 - left;
+
+  const sliceMap = {
+    axial: nv.sliceTypeAxial,
+    coronal: nv.sliceTypeCoronal,
+    sagittal: nv.sliceTypeSagittal,
+  };
+
+  const others = (["axial", "coronal", "sagittal"] as PrimarySlice[]).filter(
+    (s) => s !== primary,
+  );
 
   nv.setSliceType(nv.sliceTypeMultiplanar);
   nv.setMultiplanarPadPixels(3);
   nv.setCustomLayout([
     {
-      sliceType: nv.sliceTypeAxial,
+      sliceType: sliceMap[primary],
       position: [0, 0, left, 1],
     },
     {
-      sliceType: nv.sliceTypeCoronal,
+      sliceType: sliceMap[others[0]],
       position: [left, 0, right, 0.5],
     },
     {
-      sliceType: nv.sliceTypeSagittal,
+      sliceType: sliceMap[others[1]],
       position: [left, 0.5, right, 0.5],
     },
   ]);
 }
+
+const SLICE_OPTIONS: { value: PrimarySlice; label: string }[] = [
+  { value: "axial", label: "Axial" },
+  { value: "coronal", label: "Coronal" },
+  { value: "sagittal", label: "Sagittal" },
+];
 
 export default function NiivueVolumeViewer({
   volumeUrl,
   className = "",
 }: {
   volumeUrl: string;
-  /** Contenedor del visor (altura/ancho recomendados con Tailwind, ej. `h-[min(78vh,840px)] w-full`) */
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const nvRef = useRef<Niivue | null>(null);
-  /** Evita que una carga async antigua pise una más nueva al cambiar `volumeUrl`. */
   const loadGenerationRef = useRef(0);
+
+  const [primary, setPrimary] = useState<PrimarySlice>("axial");
+
+  const updateLayout = useCallback((slice: PrimarySlice) => {
+    setPrimary(slice);
+    if (nvRef.current) {
+      applyMprLayout(nvRef.current, slice);
+    }
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -69,17 +90,15 @@ export default function NiivueVolumeViewer({
 
       if (cancelled || generation !== loadGenerationRef.current) return;
 
-      applyMprLayout(nv);
+      applyMprLayout(nv, primary);
     }
 
-    run().catch(() => {
-      // Errores de carga: se puede mostrar UI más adelante
-    });
+    run().catch(() => {});
 
     return () => {
       cancelled = true;
     };
-  }, [volumeUrl]);
+  }, [volumeUrl, primary]);
 
   useEffect(() => {
     return () => {
@@ -94,10 +113,29 @@ export default function NiivueVolumeViewer({
   }, []);
 
   return (
-    <div
-      className={`w-full overflow-hidden rounded-xl bg-black ${className}`.trim()}
-    >
-      <canvas ref={canvasRef} />
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-1">
+        {SLICE_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => updateLayout(opt.value)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+              primary === opt.value
+                ? "bg-[#5D5FEF] text-white shadow-sm"
+                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      <div
+        className={`w-full overflow-hidden rounded-xl bg-black ${className}`.trim()}
+      >
+        <canvas ref={canvasRef} />
+      </div>
     </div>
   );
 }
