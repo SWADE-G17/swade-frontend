@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getDefaultRoute, type UserRole } from "@/lib/auth";
 
 function UserIcon({ className }: { className?: string }) {
   return (
@@ -93,7 +94,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -103,7 +104,17 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/alzheimer-predictions");
+      let role: UserRole = null;
+      if (data.session?.user?.id) {
+        const { data: profile } = await supabase
+          .from("usuario")
+          .select("role")
+          .eq("id", data.session.user.id)
+          .single();
+        role = (profile?.role as UserRole) ?? null;
+      }
+
+      router.replace(getDefaultRoute(role));
     } catch {
       setError("Error inesperado al iniciar sesión.");
     } finally {

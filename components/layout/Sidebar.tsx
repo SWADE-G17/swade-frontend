@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import { useAuth, type UserRole } from "@/lib/auth";
 
 function IconDashboard({ className }: { className?: string }) {
   return (
@@ -105,24 +105,27 @@ type NavItem = {
   href: string;
   label: string;
   icon: (props: { className?: string }) => React.ReactNode;
+  roles: UserRole[];
 };
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: IconDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: IconDashboard, roles: ["Administrador"] },
   {
     href: "/alzheimer-predictions",
     label: "Alzheimer predictions",
     icon: IconBrain,
+    roles: ["Clínico"],
   },
-  { href: "/users", label: "Users", icon: IconUsers },
-  { href: "/reports", label: "Reports", icon: IconReport },
+  { href: "/users", label: "Users", icon: IconUsers, roles: ["Administrador"] },
+  { href: "/reports", label: "Reports", icon: IconReport, roles: ["Clínico"] },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
 
   const displayName = user?.email?.split("@")[0] ?? "Usuario";
+  const visibleNavItems = navItems.filter((item) => role && item.roles.includes(role));
 
   return (
     <aside className="flex w-72 shrink-0 flex-col border-r border-zinc-200 bg-white">
@@ -164,7 +167,7 @@ export default function Sidebar() {
         </div>
 
         <nav className="mt-3 space-y-2">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
             return (

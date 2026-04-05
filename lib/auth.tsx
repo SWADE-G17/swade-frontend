@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -11,9 +12,12 @@ import { useRouter, usePathname } from "next/navigation";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
+export type UserRole = "Administrador" | "Clínico" | "Académico" | null;
+
 type AuthContextType = {
   session: Session | null;
   user: User | null;
+  role: UserRole;
   loading: boolean;
   signOut: () => Promise<void>;
 };
@@ -21,6 +25,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
+  role: null,
   loading: true,
   signOut: async () => {},
 });
@@ -34,31 +39,108 @@ export async function getAccessToken(): Promise<string | null> {
   return data.session?.access_token ?? null;
 }
 
+function decodeJwtPayload(token: string): Record<string, unknown> {
+  const base64 = token.split(".")[1];
+  const json = atob(base64.replace(/-/g, "+").replace(/_/g, "/"));
+  return JSON.parse(json);
+}
+
+function extractRoleFromJwt(token: string): UserRole {
+  try {
+    const payload = decodeJwtPayload(token);
+    const role = payload.user_role as string | undefined;
+    if (role === "Administrador" || role === "Clínico" || role === "Académico") {
+      return role;
+    }
+  } catch {
+    // JWT decode failed — fall through to DB query
+  }
+  return null;
+}
+
+async function fetchRoleFromDb(userId: string): Promise<UserRole> {
+  const { data, error } = await supabase
+    .from("usuario")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (error || !data) return null;
+  const role = data.role as string;
+  if (role === "Administrador" || role === "Clínico" || role === "Académico") {
+    return role;
+  }
+  return null;
+}
+
+async function resolveRole(session: Session): Promise<UserRole> {
+  const jwtRole = extractRoleFromJwt(session.access_token);
+  if (jwtRole) return jwtRole;
+  return fetchRoleFromDb(session.user.id);
+}
+
 const PUBLIC_PATHS = ["/login", "/signup", "/error"];
+
+const ROLE_ROUTES: Record<string, UserRole[]> = {
+  "/alzheimer-predictions": ["Clínico"],
+  "/reports": ["Clínico"],
+  "/dashboard": ["Administrador"],
+  "/users": ["Administrador"],
+  "/estudios": ["Clínico"],
+  "/Visualization": ["Clínico"],
+};
+
+export function getDefaultRoute(role: UserRole): string {
+  if (role === "Administrador") return "/dashboard";
+  return "/alzheimer-predictions";
+}
+
+export function isRouteAllowed(pathname: string, role: UserRole): boolean {
+  if (!role) return false;
+
+  for (const [route, allowedRoles] of Object.entries(ROLE_ROUTES)) {
+    if (pathname === route || pathname.startsWith(route + "/")) {
+      return allowedRoles.includes(role);
+    }
+  }
+
+  return true;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
+  const updateSessionAndRole = useCallback(async (s: Session | null) => {
+    setSession(s);
+    if (s) {
+      const r = await resolveRole(s);
+      setRole(r);
+    } else {
+      setRole(null);
+    }
+  }, []);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+      await updateSessionAndRole(s);
       setLoading(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
+    } = supabase.auth.onAuthStateChange(async (_event, s) => {
+      await updateSessionAndRole(s);
       if (!s && !PUBLIC_PATHS.includes(pathname)) {
         router.replace("/login");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [pathname, router]);
+  }, [pathname, router, updateSessionAndRole]);
 
   useEffect(() => {
     if (loading) return;
@@ -67,20 +149,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!session && !isPublic) {
       router.replace("/login");
+      return;
     }
+
     if (session && isPublic) {
-      router.replace("/alzheimer-predictions");
+      router.replace(getDefaultRoute(role));
+      return;
     }
-  }, [session, loading, pathname, router]);
+
+    if (session && role && !isPublic && !isRouteAllowed(pathname, role)) {
+      router.replace(getDefaultRoute(role));
+    }
+  }, [session, role, loading, pathname, router]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setRole(null);
     router.replace("/login");
   };
 
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, loading, signOut }}
+      value={{ session, user: session?.user ?? null, role, loading, signOut }}
     >
       {children}
     </AuthContext.Provider>
