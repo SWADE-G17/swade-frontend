@@ -1,6 +1,6 @@
 "use client";
 
-import type { StudySummaryResponse } from "@/types/study";
+import type { ParsedPrediction, StudySummaryResponse } from "@/types/study";
 import StudyStatusBadge from "@/components/common/StudyStatusBadge";
 import { formatDateUtc } from "@/lib/format";
 
@@ -25,7 +25,7 @@ export default function StudiesTable({
   onOpenDetails,
 }: {
   studies: StudySummaryResponse[];
-  predictionById: Record<string, string | null | undefined>;
+  predictionById: Record<string, ParsedPrediction | null | undefined>;
   onOpenDetails: (id: string) => void;
 }) {
   return (
@@ -55,12 +55,17 @@ export default function StudiesTable({
             </tr>
           ) : (
             studies.map((s) => {
-              const prediction =
+              const parsed = predictionById[s.id];
+              const predictionLabel =
                 s.status === "FAILED"
                   ? "Error"
                   : s.status === "COMPLETED"
-                    ? predictionById[s.id] ?? "Pending"
+                    ? parsed?.predictedName ?? "Pending"
                     : "Pending";
+              const confidenceLabel =
+                s.status === "COMPLETED" && parsed
+                  ? `${(parsed.confidence * 100).toFixed(2)}%`
+                  : "--";
 
               return (
                 <tr
@@ -75,9 +80,9 @@ export default function StudiesTable({
                       {s.originalFilename}
                     </span>
                   </td>
-                  <td className="py-3 pr-4 text-zinc-800">{prediction}</td>
+                  <td className="py-3 pr-4 text-zinc-800">{predictionLabel}</td>
                   <td className="py-3 pr-4 text-zinc-500">--</td>
-                  <td className="py-3 pr-4 text-zinc-500">--</td>
+                  <td className="py-3 pr-4 text-zinc-500">{confidenceLabel}</td>
                   <td className="py-3 pr-4 text-zinc-500">
                     {formatDateUtc(s.createdAt)}
                   </td>

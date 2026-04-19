@@ -5,9 +5,10 @@ import StudiesTable from "@/components/alzheimer/StudiesTable";
 import UploadNewPredictionModal from "@/components/alzheimer/UploadNewPredictionModal";
 import StudyDetailModal from "@/components/alzheimer/StudyDetailModal";
 import type {
-  StudyResultResponse,
+  ParsedPrediction,
   StudySummaryResponse,
 } from "@/types/study";
+import { parsePrediction } from "@/types/study";
 import { fetchStudyResult, fetchStudies } from "@/lib/studyApi";
 
 export default function AlzheimerPredictionsPage() {
@@ -19,7 +20,7 @@ export default function AlzheimerPredictionsPage() {
   // Para que la columna "Prediction" se vea como el figma, precargamos
   // la prediccion solo para estudios COMPLETED.
   const [predictionById, setPredictionById] = useState<
-    Record<string, string | null | undefined>
+    Record<string, ParsedPrediction | null | undefined>
   >({});
   const fetchedPredictionIdsRef = useRef<Set<string>>(new Set());
 
@@ -51,9 +52,10 @@ export default function AlzheimerPredictionsPage() {
         if (!outcome || outcome.status !== 200) continue;
 
         fetchedPredictionIdsRef.current.add(s.id);
+        const parsed = parsePrediction(outcome.data.prediction);
         setPredictionById((prev) => ({
           ...prev,
-          [s.id]: (outcome.data as StudyResultResponse).prediction,
+          [s.id]: parsed,
         }));
       }
     };
