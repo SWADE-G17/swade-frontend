@@ -42,7 +42,7 @@ export default function ErrorPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#1a1145] via-[#1e1554] to-[#2a1a6b]">
-          <p className="text-white">Cargando...</p>
+          <p className="text-white">Cargando…</p>
         </div>
       }
     >

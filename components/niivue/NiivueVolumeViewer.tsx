@@ -42,7 +42,7 @@ function applyMprLayout(nv: Niivue, primary: PrimarySlice) {
 const SLICE_OPTIONS: { value: PrimarySlice; label: string }[] = [
   { value: "axial", label: "Axial" },
   { value: "coronal", label: "Coronal" },
-  { value: "sagittal", label: "Sagittal" },
+  { value: "sagittal", label: "Sagital" },
 ];
 
 export default function NiivueVolumeViewer({

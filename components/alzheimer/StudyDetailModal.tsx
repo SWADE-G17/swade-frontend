@@ -98,7 +98,7 @@ export default function StudyDetailModal({
         timeout = setTimeout(poll, 1500);
       } catch (err) {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Error al consultar.";
+        const message = err instanceof Error ? err.message : "Error al consultar el estudio.";
         if (message === "404") setPollingError("Estudio no encontrado (404).");
         else setPollingError(message);
         timeout = setTimeout(poll, 2000);
@@ -145,7 +145,7 @@ export default function StudyDetailModal({
               id="study-detail-title"
               className="text-sm font-semibold text-zinc-900"
             >
-              Study Details
+              Detalles del estudio
             </h3>
             <p className="mt-1 text-xs text-zinc-500">
               {studyId}
@@ -155,7 +155,7 @@ export default function StudyDetailModal({
             type="button"
             onClick={requestClose}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-            aria-label="Close"
+            aria-label="Cerrar"
           >
             ×
           </button>
@@ -171,7 +171,7 @@ export default function StudyDetailModal({
 
               <div className="space-y-1">
                 <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                  Patient file
+                  Archivo del paciente
                 </div>
                 <div className="break-all text-sm font-medium text-zinc-800">
                   {stripFilenameExtensions(detail.originalFilename)}
@@ -180,7 +180,7 @@ export default function StudyDetailModal({
 
               <div className="space-y-1">
                 <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                  Created
+                  Creado
                 </div>
                 <div className="text-sm text-zinc-700">{formatDateUtc(detail.createdAt)}</div>
               </div>
@@ -199,19 +199,19 @@ export default function StudyDetailModal({
 
               {detail.status !== "COMPLETED" && detail.status !== "FAILED" && (
                 <p className="text-xs text-zinc-500">
-                  Waiting for the backend to finish processing...
+                  Esperando a que el servidor termine de procesar…
                 </p>
               )}
 
               {detail.status === "COMPLETED" && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
                   <div className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
-                    Result
+                    Resultado
                   </div>
 
                   <div className="mt-2 text-sm text-zinc-800">
-                    <span className="font-medium">Prediction: </span>
-                    {result ? result.prediction : "Getting result..."}
+                    <span className="font-medium">Predicción: </span>
+                    {result ? result.prediction : "Obteniendo resultado…"}
                   </div>
 
                   {result && (
@@ -234,7 +234,7 @@ export default function StudyDetailModal({
                           }}
                           className="inline-flex items-center justify-center rounded-xl bg-[#5D5FEF] px-3 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-[#4f51d9]"
                         >
-                          Download heatmap (.nii)
+                          Descargar mapa de calor (.nii)
                         </button>
                       )}
 
@@ -253,7 +253,7 @@ export default function StudyDetailModal({
                           }}
                           className="inline-flex items-center justify-center rounded-xl border border-[#5D5FEF]/40 bg-white px-3 py-2 text-xs font-medium text-[#2B2B5F] transition hover:bg-[#5D5FEF]/10"
                         >
-                          View report PDF
+                          Ver informe (PDF)
                         </button>
                       )}
                     </div>
@@ -268,7 +268,7 @@ export default function StudyDetailModal({
                         }}
                         className="inline-flex items-center justify-center rounded-xl border border-[#5D5FEF]/40 bg-white px-3 py-2 text-xs font-medium text-[#2B2B5F] transition hover:bg-[#5D5FEF]/10"
                       >
-                        Visualizar con en navegador web
+                        Visualizar en el navegador web
                       </button>
 
                   {downloadError && (
@@ -282,10 +282,10 @@ export default function StudyDetailModal({
           ) : (
             <div className="space-y-2">
               <p className="text-sm font-medium text-zinc-900">
-                Loading study...
+                Cargando estudio…
               </p>
               <p className="text-xs text-zinc-500">
-                Polling the backend until the study finishes.
+                Consultando el estado hasta que el estudio finalice.
               </p>
             </div>
           )}

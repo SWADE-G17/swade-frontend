@@ -5,7 +5,7 @@ export const API_BASE_URL =
 
 export async function authHeaders(): Promise<Record<string, string>> {
   const token = await getAccessToken();
-  if (!token) throw new Error("NO_SESSION");
+  if (!token) throw new Error("No hay sesión activa.");
   return { Authorization: `Bearer ${token}` };
 }
 
@@ -20,7 +20,7 @@ export async function authFetch(
   });
 
   if (res.status === 401) {
-    throw new Error("UNAUTHORIZED");
+    throw new Error("No autorizado.");
   }
 
   return res;

@@ -35,7 +35,7 @@ export type ParsedPrediction = {
 export function parsePrediction(raw: string): ParsedPrediction | null {
   try {
     const obj = JSON.parse(raw);
-    const name: string = obj.predicted_name ?? "Unknown";
+    const name: string = obj.predicted_name ?? "Desconocido";
     const idx: number = obj.predicted_class ?? 0;
     const probs: number[] = obj.probabilities ?? [];
     return { predictedName: name, confidence: probs[idx] ?? 0 };

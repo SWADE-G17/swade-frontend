@@ -44,14 +44,14 @@ export default function UsersPage() {
     );
   }, [users, search]);
 
-  const subtitle = `${users.length} user${users.length !== 1 ? "s" : ""}`;
+  const subtitle = `${users.length} ${users.length === 1 ? "usuario" : "usuarios"}`;
 
   return (
     <div className="min-h-screen px-6 py-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-800">
-            Users
+            Usuarios
           </h2>
           <p className="mt-1 text-xs text-zinc-400">{subtitle}</p>
         </div>
@@ -63,7 +63,7 @@ export default function UsersPage() {
             onClick={refresh}
             disabled={loading}
           >
-            {loading ? "Refreshing..." : "Refresh"}
+            {loading ? "Actualizando…" : "Actualizar"}
           </button>
 
           <button
@@ -71,7 +71,7 @@ export default function UsersPage() {
             className="inline-flex items-center justify-center rounded-xl bg-[#5D5FEF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4f51d9] disabled:cursor-not-allowed disabled:bg-[#5D5FEF]/60"
             onClick={() => setCreateOpen(true)}
           >
-            + New User
+            + Nuevo usuario
           </button>
         </div>
       </div>
@@ -80,7 +80,8 @@ export default function UsersPage() {
         <div className="relative w-full max-w-xs">
           <input
             type="text"
-            placeholder="Search by name, email, or role…"
+            placeholder="Buscar por nombre, correo o rol…"
+            aria-label="Buscar usuarios"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-[#5D5FEF]/60 focus:ring-2 focus:ring-[#5D5FEF]/20"

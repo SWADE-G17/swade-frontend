@@ -33,11 +33,11 @@ export default function CreateUserModal({
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Las contraseñas no coinciden.");
       return;
     }
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
 
@@ -57,7 +57,7 @@ export default function CreateUserModal({
 
       const newUserId = data.user?.id;
       if (!newUserId) {
-        setError("User creation failed — no user ID returned.");
+        setError("No se pudo crear el usuario: no se recibió el identificador.");
         return;
       }
 
@@ -69,14 +69,16 @@ export default function CreateUserModal({
       });
 
       if (dbError) {
-        setError(`Auth user created but failed to save profile: ${dbError.message}`);
+        setError(
+          `Usuario de autenticación creado, pero falló al guardar el perfil: ${dbError.message}`,
+        );
         return;
       }
 
       onCreated();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unexpected error.");
+      setError(err instanceof Error ? err.message : "Error inesperado.");
     } finally {
       setCreating(false);
     }
@@ -98,17 +100,17 @@ export default function CreateUserModal({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-zinc-900">
-              Create User
+              Crear usuario
             </h3>
             <p className="mt-1 text-xs text-zinc-500">
-              Create a new account with email and password
+              Nueva cuenta con correo y contraseña
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-            aria-label="Close"
+            aria-label="Cerrar"
           >
             ×
           </button>
@@ -116,19 +118,19 @@ export default function CreateUserModal({
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            <span className="font-medium">Email</span>
+            <span className="font-medium">Correo electrónico</span>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-[#5D5FEF]/60 focus:ring-2 focus:ring-[#5D5FEF]/20"
-              placeholder="user@example.com"
+              placeholder="correo@ejemplo.com"
             />
           </label>
 
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            <span className="font-medium">Username</span>
+            <span className="font-medium">Nombre de usuario</span>
             <input
               type="text"
               required
@@ -141,7 +143,7 @@ export default function CreateUserModal({
           </label>
 
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            <span className="font-medium">Password</span>
+            <span className="font-medium">Contraseña</span>
             <input
               type="password"
               required
@@ -149,12 +151,12 @@ export default function CreateUserModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-[#5D5FEF]/60 focus:ring-2 focus:ring-[#5D5FEF]/20"
-              placeholder="Min. 6 characters"
+              placeholder="Mín. 6 caracteres"
             />
           </label>
 
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            <span className="font-medium">Confirm Password</span>
+            <span className="font-medium">Confirmar contraseña</span>
             <input
               type="password"
               required
@@ -162,12 +164,12 @@ export default function CreateUserModal({
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-[#5D5FEF]/60 focus:ring-2 focus:ring-[#5D5FEF]/20"
-              placeholder="Repeat password"
+              placeholder="Repetir contraseña"
             />
           </label>
 
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            <span className="font-medium">Role</span>
+            <span className="font-medium">Rol</span>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as UsuarioRole)}
@@ -192,14 +194,14 @@ export default function CreateUserModal({
             disabled={!canSubmit}
             className="inline-flex items-center justify-center rounded-xl bg-[#5D5FEF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4f51d9] disabled:cursor-not-allowed disabled:bg-[#5D5FEF]/60"
           >
-            {creating ? "Creating..." : "Create User"}
+            {creating ? "Creando…" : "Crear usuario"}
           </button>
           <button
             type="button"
             onClick={onClose}
             className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
           >
-            Cancel
+            Cancelar
           </button>
         </form>
       </div>

@@ -80,8 +80,8 @@ export default function AlzheimerPredictionsPage() {
   const headerSubtitle = useMemo(() => {
     const total = studies.length;
     const q = patientSearch.trim();
-    if (!q) return `${total} studies`;
-    return `${filteredStudies.length} of ${total} studies`;
+    if (!q) return `${total} ${total === 1 ? "estudio" : "estudios"}`;
+    return `${filteredStudies.length} de ${total} ${total === 1 ? "estudio" : "estudios"}`;
   }, [studies.length, filteredStudies.length, patientSearch]);
 
   return (
@@ -90,7 +90,7 @@ export default function AlzheimerPredictionsPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-800">
-              Alzheimer Predictions
+              Predicciones Alzheimer
             </h2>
             <p className="mt-1 text-xs text-zinc-400">{headerSubtitle}</p>
           </div>
@@ -102,7 +102,7 @@ export default function AlzheimerPredictionsPage() {
               onClick={refresh}
               disabled={loading}
             >
-              {loading ? "Refreshing..." : "Refresh"}
+              {loading ? "Actualizando…" : "Actualizar"}
             </button>
 
             <button
@@ -110,7 +110,7 @@ export default function AlzheimerPredictionsPage() {
               className="inline-flex items-center justify-center rounded-xl bg-[#5D5FEF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4f51d9] disabled:cursor-not-allowed disabled:bg-[#5D5FEF]/60"
               onClick={() => setUploadOpen(true)}
             >
-              + New Prediction
+              + Nueva predicción
             </button>
           </div>
         </div>
@@ -121,8 +121,8 @@ export default function AlzheimerPredictionsPage() {
               type="search"
               value={patientSearch}
               onChange={(e) => setPatientSearch(e.target.value)}
-              placeholder="Search by patient ID"
-              aria-label="Search studies by patient ID"
+              placeholder="Buscar por ID de paciente"
+              aria-label="Buscar estudios por ID de paciente"
               className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-[#5D5FEF]/60 focus:ring-2 focus:ring-[#5D5FEF]/20"
             />
           </div>

@@ -33,13 +33,13 @@ export default function StudiesTable({
       <table className="min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr className="text-left text-xs font-semibold text-zinc-500">
-            <th className="pb-3 pr-4">Patient Nº</th>
-            <th className="pb-3 pr-4">Patient ID</th>
-            <th className="pb-3 pr-4">Prediction</th>
-            <th className="pb-3 pr-4">Expires</th>
-            <th className="pb-3 pr-4">Precision</th>
-            <th className="pb-3 pr-4">Created</th>
-            <th className="pb-3 pr-4">Status</th>
+            <th className="pb-3 pr-4">Paciente N.º</th>
+            <th className="pb-3 pr-4">ID paciente</th>
+            <th className="pb-3 pr-4">Predicción</th>
+            <th className="pb-3 pr-4">Expira</th>
+            <th className="pb-3 pr-4">Precisión</th>
+            <th className="pb-3 pr-4">Creado</th>
+            <th className="pb-3 pr-4">Estado</th>
             <th className="pb-3 pr-2 text-right"> </th>
           </tr>
         </thead>
@@ -50,7 +50,7 @@ export default function StudiesTable({
                 colSpan={8}
                 className="py-10 text-center text-sm text-zinc-500"
               >
-                No hay estudios aún. Usa “+ New Prediction”.
+                No hay estudios aún. Usa «+ Nueva predicción».
               </td>
             </tr>
           ) : (
@@ -60,8 +60,8 @@ export default function StudiesTable({
                 s.status === "FAILED"
                   ? "Error"
                   : s.status === "COMPLETED"
-                    ? parsed?.predictedName ?? "Pending"
-                    : "Pending";
+                    ? parsed?.predictedName ?? "Pendiente"
+                    : "Pendiente";
               const confidenceLabel =
                 s.status === "COMPLETED" && parsed
                   ? `${(parsed.confidence * 100).toFixed(2)}%`
@@ -93,7 +93,7 @@ export default function StudiesTable({
                     <button
                       type="button"
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-                      aria-label="Study actions"
+                      aria-label="Acciones del estudio"
                       onClick={() => onOpenDetails(s.id)}
                     >
                       <DotsIcon className="h-4 w-4" />

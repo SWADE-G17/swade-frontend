@@ -3,11 +3,11 @@ import type { StudyStatus } from "@/types/study";
 function getLabel(status: StudyStatus) {
   switch (status) {
     case "QUEUED":
-      return "Processing";
+      return "en cola";
     case "PROCESSING":
-      return "Processing";
+      return "Procesando";
     case "COMPLETED":
-      return "Completed";
+      return "Listo";
     case "FAILED":
       return "Error";
     default:
@@ -18,6 +18,7 @@ function getLabel(status: StudyStatus) {
 function getStyles(status: StudyStatus) {
   switch (status) {
     case "QUEUED":
+      return "border-[#6366F1]/55 bg-[#6366F1]/12 text-[#3730A3]";
     case "PROCESSING":
       return "border-[#F59E0B]/60 bg-[#F59E0B]/10 text-[#B45309]";
     case "COMPLETED":

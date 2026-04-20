@@ -23,10 +23,10 @@ export default function StudyResultadoPage() {
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-              Heatmap Visualization
+              Visualización del mapa de calor
             </h1>
             <p className="mt-1 text-xs text-zinc-400">
-              Study ID: <span className="font-mono">{id}</span>
+              ID del estudio: <span className="font-mono">{id}</span>
             </p>
           </div>
         </div>

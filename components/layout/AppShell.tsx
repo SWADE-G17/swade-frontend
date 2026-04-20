@@ -18,7 +18,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="flex h-dvh items-center justify-center bg-zinc-50">
-        <div className="text-sm text-zinc-500">Cargando...</div>
+        <div className="text-sm text-zinc-500">Cargando…</div>
       </div>
     );
   }

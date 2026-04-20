@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SWADE",
-  description: "SWADE - Alzheimer MRI Analysis Platform",
+  description: "SWADE — Plataforma de análisis de resonancia magnética para Alzheimer",
 };
 
 export default function RootLayout({

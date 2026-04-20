@@ -19,7 +19,8 @@ export function resolveApiPath(path: string) {
 
 export async function fetchStudies(): Promise<StudySummaryResponse[]> {
   const res = await authFetch(`${API_BASE_URL}/estudios`);
-  if (!res.ok) throw new Error(`GET /estudios failed (${res.status})`);
+  if (!res.ok)
+    throw new Error(`No se pudo obtener la lista de estudios (${res.status}).`);
   return (await res.json()) as StudySummaryResponse[];
 }
 
@@ -34,7 +35,7 @@ export async function createStudy(file: File): Promise<StudyCreateResponse> {
     body: formData,
   });
 
-  if (res.status === 401) throw new Error("UNAUTHORIZED");
+  if (res.status === 401) throw new Error("No autorizado.");
   if (res.status === 400) throw new Error("Solicitud inválida (400).");
   if (res.status !== 202) {
     throw new Error(`POST /estudios inesperado (${res.status}).`);
@@ -48,7 +49,8 @@ export async function fetchStudyDetail(
 ): Promise<StudyDetailResponse> {
   const res = await authFetch(`${API_BASE_URL}/estudios/${id}`);
   if (res.status === 404) throw new Error("404");
-  if (!res.ok) throw new Error(`GET detail failed (${res.status})`);
+  if (!res.ok)
+    throw new Error(`No se pudo obtener el detalle del estudio (${res.status}).`);
   return (await res.json()) as StudyDetailResponse;
 }
 
@@ -63,6 +65,7 @@ export async function fetchStudyResult(
   const res = await authFetch(`${API_BASE_URL}/estudios/${id}/resultado`);
   if (res.status === 404) return { status: 404 };
   if (res.status === 409) return { status: 409 };
-  if (!res.ok) throw new Error(`GET resultado failed (${res.status})`);
+  if (!res.ok)
+    throw new Error(`No se pudo obtener el resultado (${res.status}).`);
   return { status: 200, data: (await res.json()) as StudyResultResponse };
 }
