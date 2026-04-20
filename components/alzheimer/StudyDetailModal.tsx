@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { StudyDetailResponse, StudyResultResponse } from "@/types/study";
 import { downloadBlobFromApi, openPdfInNewTab } from "@/lib/download";
@@ -10,7 +11,7 @@ import {
   resolveApiPath,
 } from "@/lib/studyApi";
 import StudyStatusBadge from "@/components/common/StudyStatusBadge";
-import { formatDateUtc } from "@/lib/format";
+import { formatDateUtc, stripFilenameExtensions } from "@/lib/format";
 
 export default function StudyDetailModal({
   studyId,
@@ -24,6 +25,36 @@ export default function StudyDetailModal({
   const [result, setResult] = useState<StudyResultResponse | null>(null);
   const [pollingError, setPollingError] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const closeStartedRef = useRef(false);
+
+  const requestClose = useCallback(() => {
+    if (closeStartedRef.current) return;
+    closeStartedRef.current = true;
+    setPanelOpen(false);
+    window.setTimeout(onClose, 300);
+  }, [onClose]);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setPanelOpen(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") requestClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [requestClose]);
 
   useEffect(() => {
     if (!studyId) return;
@@ -89,19 +120,31 @@ export default function StudyDetailModal({
     ? resolveApiPath(result.reportPath)
     : null;
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      role="dialog"
-      aria-modal="true"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-lg">
-        <div className="flex items-start justify-between gap-3">
+  const overlay = (
+    <>
+      <div
+        className={`fixed inset-0 z-[100] bg-black/40 transition-opacity duration-300 ease-out ${
+          panelOpen ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) requestClose();
+        }}
+      />
+      <div
+        className={`fixed top-0 right-0 z-[110] flex h-[100dvh] max-h-[100dvh] w-full max-w-lg flex-col overflow-hidden border-l border-zinc-200 bg-white shadow-2xl transition-transform duration-300 ease-out ${
+          panelOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="study-detail-title"
+      >
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-100 p-5">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900">
+            <h3
+              id="study-detail-title"
+              className="text-sm font-semibold text-zinc-900"
+            >
               Study Details
             </h3>
             <p className="mt-1 text-xs text-zinc-500">
@@ -110,7 +153,7 @@ export default function StudyDetailModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
             aria-label="Close"
           >
@@ -118,7 +161,8 @@ export default function StudyDetailModal({
           </button>
         </div>
 
-        <div className="mt-4 space-y-3">
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+          <div className="space-y-3">
           {detail ? (
             <>
               <div className="flex flex-wrap items-center gap-2">
@@ -130,7 +174,7 @@ export default function StudyDetailModal({
                   Patient file
                 </div>
                 <div className="break-all text-sm font-medium text-zinc-800">
-                  {detail.originalFilename}
+                  {stripFilenameExtensions(detail.originalFilename)}
                 </div>
               </div>
 
@@ -224,7 +268,7 @@ export default function StudyDetailModal({
                         }}
                         className="inline-flex items-center justify-center rounded-xl border border-[#5D5FEF]/40 bg-white px-3 py-2 text-xs font-medium text-[#2B2B5F] transition hover:bg-[#5D5FEF]/10"
                       >
-                        Visualizar con Niivue
+                        Visualizar con en navegador web
                       </button>
 
                   {downloadError && (
@@ -245,9 +289,13 @@ export default function StudyDetailModal({
               </p>
             </div>
           )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
+
+  if (typeof document === "undefined") return null;
+  return createPortal(overlay, document.body);
 }
 

@@ -130,22 +130,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
-      await updateSessionAndRole(s);
-      setLoading(false);
-    });
+    let cancelled = false;
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, s) => {
-      await updateSessionAndRole(s);
-      if (!s && !PUBLIC_PATHS.includes(pathname)) {
-        router.replace("/login");
-      }
+    } = supabase.auth.onAuthStateChange((_event, s) => {
+      updateSessionAndRole(s)
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
     });
 
-    return () => subscription.unsubscribe();
-  }, [pathname, router, updateSessionAndRole]);
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, [updateSessionAndRole]);
 
   useEffect(() => {
     if (loading) return;

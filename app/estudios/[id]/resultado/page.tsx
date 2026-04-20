@@ -1,7 +1,12 @@
 "use client";
 
-import NiivueVolumeViewer from "@/components/niivue/NiivueVolumeViewer";
+import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
+
+const NiivueVolumeViewer = dynamic(
+  () => import("@/components/niivue/NiivueVolumeViewer"),
+  { ssr: false },
+);
 
 export default function StudyResultadoPage() {
   const params = useParams<{ id: string }>();

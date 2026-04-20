@@ -17,18 +17,16 @@ function ShellInner({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
+      <div className="flex h-dvh items-center justify-center bg-zinc-50">
         <div className="text-sm text-zinc-500">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900">
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">{children}</div>
-      </div>
+    <div className="flex h-dvh max-h-dvh min-h-0 overflow-hidden bg-zinc-50 text-zinc-900">
+      <Sidebar />
+      <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
     </div>
   );
 }

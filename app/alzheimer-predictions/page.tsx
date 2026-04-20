@@ -10,12 +10,14 @@ import type {
 } from "@/types/study";
 import { parsePrediction } from "@/types/study";
 import { fetchStudyResult, fetchStudies } from "@/lib/studyApi";
+import { stripFilenameExtensions } from "@/lib/format";
 
 export default function AlzheimerPredictionsPage() {
   const [studies, setStudies] = useState<StudySummaryResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [detailsStudyId, setDetailsStudyId] = useState<string | null>(null);
+  const [patientSearch, setPatientSearch] = useState("");
 
   // Para que la columna "Prediction" se vea como el figma, precargamos
   // la prediccion solo para estudios COMPLETED.
@@ -63,10 +65,24 @@ export default function AlzheimerPredictionsPage() {
     run();
   }, [studies]);
 
+  const filteredStudies = useMemo(() => {
+    const q = patientSearch.trim().toLowerCase();
+    if (!q) return studies;
+    return studies.filter((s) => {
+      const patientId = stripFilenameExtensions(s.originalFilename).toLowerCase();
+      return (
+        patientId.includes(q) ||
+        s.originalFilename.toLowerCase().includes(q)
+      );
+    });
+  }, [studies, patientSearch]);
+
   const headerSubtitle = useMemo(() => {
     const total = studies.length;
-    return `${total} studies`;
-  }, [studies.length]);
+    const q = patientSearch.trim();
+    if (!q) return `${total} studies`;
+    return `${filteredStudies.length} of ${total} studies`;
+  }, [studies.length, filteredStudies.length, patientSearch]);
 
   return (
     <div className="min-h-screen px-6 py-6">
@@ -102,15 +118,18 @@ export default function AlzheimerPredictionsPage() {
         <div className="mt-2 flex items-center justify-between gap-3">
           <div className="relative w-full max-w-xs">
             <input
-              type="text"
-              placeholder="Search"
+              type="search"
+              value={patientSearch}
+              onChange={(e) => setPatientSearch(e.target.value)}
+              placeholder="Search by patient ID"
+              aria-label="Search studies by patient ID"
               className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-[#5D5FEF]/60 focus:ring-2 focus:ring-[#5D5FEF]/20"
             />
           </div>
         </div>
         <div className="border border-zinc-200 bg-white p-5 shadow-sm mt-4">
           <StudiesTable
-            studies={studies}
+            studies={filteredStudies}
             predictionById={predictionById}
             onOpenDetails={(id) => setDetailsStudyId(id)}
           />

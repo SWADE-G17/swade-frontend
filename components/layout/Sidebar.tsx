@@ -128,7 +128,7 @@ export default function Sidebar() {
   const visibleNavItems = navItems.filter((item) => role && item.roles.includes(role));
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-r border-zinc-200 bg-white">
+    <aside className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-y-auto border-r border-zinc-200 bg-white">
       <div className="flex items-start gap-2 px-4 py-4">
         <img src="/images/logo.png" alt="Logo" className="w-40 h-10" />
         <div className="flex-1" />

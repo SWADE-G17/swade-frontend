@@ -2,7 +2,7 @@
 
 import type { ParsedPrediction, StudySummaryResponse } from "@/types/study";
 import StudyStatusBadge from "@/components/common/StudyStatusBadge";
-import { formatDateUtc } from "@/lib/format";
+import { formatDateUtc, stripFilenameExtensions } from "@/lib/format";
 
 function DotsIcon({ className }: { className?: string }) {
   return (
@@ -33,8 +33,8 @@ export default function StudiesTable({
       <table className="min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr className="text-left text-xs font-semibold text-zinc-500">
+            <th className="pb-3 pr-4">Patient Nº</th>
             <th className="pb-3 pr-4">Patient ID</th>
-            <th className="pb-3 pr-4">Patient Name</th>
             <th className="pb-3 pr-4">Prediction</th>
             <th className="pb-3 pr-4">Expires</th>
             <th className="pb-3 pr-4">Precision</th>
@@ -77,7 +77,7 @@ export default function StudiesTable({
                   </td>
                   <td className="py-3 pr-4">
                     <span className="block max-w-[260px] truncate font-medium text-zinc-800">
-                      {s.originalFilename}
+                      {stripFilenameExtensions(s.originalFilename)}
                     </span>
                   </td>
                   <td className="py-3 pr-4 text-zinc-800">{predictionLabel}</td>
