@@ -34,9 +34,13 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+let _cachedAccessToken: string | null = null;
+
 export async function getAccessToken(): Promise<string | null> {
+  if (_cachedAccessToken) return _cachedAccessToken;
   const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? null;
+  _cachedAccessToken = data.session?.access_token ?? null;
+  return _cachedAccessToken;
 }
 
 function decodeJwtPayload(token: string): Record<string, unknown> {
@@ -115,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const updateSessionAndRole = useCallback(async (s: Session | null) => {
+    _cachedAccessToken = s?.access_token ?? null;
     setSession(s);
     if (s) {
       const r = await resolveRole(s);
@@ -163,6 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session, role, loading, pathname, router]);
 
   const signOut = async () => {
+    _cachedAccessToken = null;
     await supabase.auth.signOut();
     setRole(null);
     router.replace("/login");

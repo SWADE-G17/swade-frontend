@@ -4,10 +4,7 @@ import type {
   StudyResultResponse,
   StudySummaryResponse,
 } from "@/types/study";
-import { getAccessToken } from "@/lib/auth";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+import { API_BASE_URL, authFetch, authHeaders } from "@/lib/api";
 
 export function getApiBaseUrl() {
   return API_BASE_URL;
@@ -18,29 +15,6 @@ export function resolveApiPath(path: string) {
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
   if (!path.startsWith("/")) return `${API_BASE_URL}/${path}`;
   return `${API_BASE_URL}${path}`;
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  const token = await getAccessToken();
-  if (!token) throw new Error("NO_SESSION");
-  return { Authorization: `Bearer ${token}` };
-}
-
-async function authFetch(
-  input: string,
-  init?: RequestInit,
-): Promise<Response> {
-  const headers = await authHeaders();
-  const res = await fetch(input, {
-    ...init,
-    headers: { ...headers, ...init?.headers },
-  });
-
-  if (res.status === 401) {
-    throw new Error("UNAUTHORIZED");
-  }
-
-  return res;
 }
 
 export async function fetchStudies(): Promise<StudySummaryResponse[]> {
