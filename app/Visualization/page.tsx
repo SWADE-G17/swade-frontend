@@ -8,12 +8,13 @@ export default function VisualizationPage() {
           Visualización
         </h1>
         <p className="mt-1 text-xs text-zinc-400">
-          Demostración con volumen de prueba desde la carpeta pública.
+          Demo con volumen mock desde `public/` (T1 + heatmap Grad-CAM).
         </p>
 
         <div className="mt-4 w-full">
           <NiivueVolumeViewer
-            volumeUrl="/orig_nu.mgz"
+            baseVolumeUrl="/24_orig.mgz"
+            overlayVolumeUrl="/24_heatmap.nii.gz"
             className="h-[min(78vh,840px)]"
           />
         </div>

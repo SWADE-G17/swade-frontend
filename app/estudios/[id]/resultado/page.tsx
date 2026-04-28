@@ -12,10 +12,13 @@ export default function StudyResultadoPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "mock-id";
 
-  // Mock por ahora: el volumen real vendrá de:
-  //   GET ${API_BASE_URL}/estudios/{id}/resultado/heatmap
-  // y lo conectaremos cuando exista el id/endpoint en el flujo.
-  const volumeUrl = "/orig_nu.mgz";
+  // Mock por ahora: los volúmenes reales vendrán del backend.
+  // - Base anatómica: orig.mgz (T1)
+  // - Overlay heatmap (Grad-CAM normalizado a [0,1]) que comparte el affine
+  //   de orig (save_gradcam_volume copia reference_img=orig_image), por lo que
+  //   Niivue alinea ambos volúmenes sin resampleo extra.
+  const baseVolumeUrl = "/24_orig.mgz";
+  const overlayVolumeUrl = "/24_heatmap.nii.gz";
 
   return (
     <div className="min-h-screen px-6 py-6">
@@ -33,7 +36,8 @@ export default function StudyResultadoPage() {
 
         <div className="mt-4 w-full">
           <NiivueVolumeViewer
-            volumeUrl={volumeUrl}
+            baseVolumeUrl={baseVolumeUrl}
+            overlayVolumeUrl={overlayVolumeUrl}
             className="h-[min(78vh,840px)]"
           />
         </div>
