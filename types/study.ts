@@ -23,8 +23,13 @@ export type StudyDetailResponse = {
 
 export type StudyResultResponse = {
   prediction: string;
-  heatmapPath: string; // relative path
-  reportPath: string; // relative path
+  // Absolute URLs to the streaming volume endpoints (already JWT-gated).
+  // null means the worker hasn't finished writing them yet — caller must
+  // not try to mount the viewer in that case.
+  heatmapUrl: string | null;
+  origUrl: string | null;
+  // Report still served as a relative path under the same API base.
+  reportPath: string | null;
 };
 
 export type ParsedPrediction = {

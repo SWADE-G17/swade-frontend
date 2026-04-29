@@ -56,13 +56,22 @@ export async function fetchStudyDetail(
 
 export type StudyResultFetchOutcome =
   | { status: 200; data: StudyResultResponse }
+  | { status: 401 }
+  | { status: 403 }
   | { status: 404 }
   | { status: 409 };
 
+// Bypasses authFetch's 401-throws-Error behavior so the caller can
+// distinguish 401/403 (route to login) from other HTTP failures.
 export async function fetchStudyResult(
   id: string,
 ): Promise<StudyResultFetchOutcome> {
-  const res = await authFetch(`${API_BASE_URL}/estudios/${id}/resultado`);
+  const headers = await authHeaders();
+  const res = await fetch(`${API_BASE_URL}/estudios/${id}/resultado`, {
+    headers,
+  });
+  if (res.status === 401) return { status: 401 };
+  if (res.status === 403) return { status: 403 };
   if (res.status === 404) return { status: 404 };
   if (res.status === 409) return { status: 409 };
   if (!res.ok)

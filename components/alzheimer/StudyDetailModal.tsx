@@ -10,6 +10,7 @@ import {
   fetchStudyResult,
   resolveApiPath,
 } from "@/lib/studyApi";
+import { useAuth } from "@/lib/auth";
 import StudyStatusBadge from "@/components/common/StudyStatusBadge";
 import { formatDateUtc, stripFilenameExtensions } from "@/lib/format";
 
@@ -21,6 +22,7 @@ export default function StudyDetailModal({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { signOut } = useAuth();
   const [detail, setDetail] = useState<StudyDetailResponse | null>(null);
   const [result, setResult] = useState<StudyResultResponse | null>(null);
   const [pollingError, setPollingError] = useState<string | null>(null);
@@ -78,6 +80,11 @@ export default function StudyDetailModal({
             return; // stop polling
           }
 
+          if (outcome.status === 401 || outcome.status === 403) {
+            signOut().catch(() => router.replace("/login"));
+            return;
+          }
+
           if (outcome.status === 409) {
             timeout = setTimeout(poll, 1500);
             return;
@@ -111,14 +118,17 @@ export default function StudyDetailModal({
       cancelled = true;
       if (timeout) clearTimeout(timeout);
     };
-  }, [studyId]);
+  }, [studyId, signOut, router]);
 
-  const resolvedHeatmapUrl = result?.heatmapPath
-    ? resolveApiPath(result.heatmapPath)
-    : null;
+  // heatmapUrl / origUrl from the contract are absolute URLs and may be null
+  // while the worker is still writing the volumes. reportPath is still
+  // relative, so resolveApiPath() is needed for it.
+  const heatmapDownloadUrl = result?.heatmapUrl ?? null;
   const resolvedReportUrl = result?.reportPath
     ? resolveApiPath(result.reportPath)
     : null;
+  const volumesPending =
+    !!result && (result.heatmapUrl === null || result.origUrl === null);
 
   const overlay = (
     <>
@@ -216,14 +226,14 @@ export default function StudyDetailModal({
 
                   {result && (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {resolvedHeatmapUrl && (
+                      {heatmapDownloadUrl && (
                         <button
                           type="button"
                           onClick={() => {
                             setDownloadError(null);
                             downloadBlobFromApi(
-                              result.heatmapPath,
-                              "processed_mri.nii",
+                              heatmapDownloadUrl,
+                              "processed_mri.nii.gz",
                             ).catch((err) => {
                               setDownloadError(
                                 err instanceof Error
@@ -234,16 +244,18 @@ export default function StudyDetailModal({
                           }}
                           className="inline-flex items-center justify-center rounded-xl bg-[#5D5FEF] px-3 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-[#4f51d9]"
                         >
-                          Descargar mapa de calor (.nii)
+                          Descargar mapa de calor (.nii.gz)
                         </button>
                       )}
 
-                      {resolvedReportUrl && (
+                      {resolvedReportUrl && result.reportPath && (
                         <button
                           type="button"
                           onClick={() => {
                             setDownloadError(null);
-                            openPdfInNewTab(result.reportPath).catch((err) => {
+                            const reportPath = result.reportPath;
+                            if (!reportPath) return;
+                            openPdfInNewTab(reportPath).catch((err) => {
                               setDownloadError(
                                 err instanceof Error
                                   ? err.message
@@ -261,15 +273,25 @@ export default function StudyDetailModal({
 
                       <button
                         type="button"
+                        disabled={volumesPending}
+                        title={
+                          volumesPending
+                            ? "Los volúmenes aún no están disponibles."
+                            : undefined
+                        }
                         onClick={() => {
-                          // Ruta frontend para visualizar en Niivue.
-                          // Por ahora el volumen está mockeado (ver app/estudios/[id]/resultado).
                           router.push(`/estudios/${studyId}/resultado`);
                         }}
-                        className="inline-flex items-center justify-center rounded-xl border border-[#5D5FEF]/40 bg-white px-3 py-2 text-xs font-medium text-[#2B2B5F] transition hover:bg-[#5D5FEF]/10"
+                        className="mt-3 inline-flex items-center justify-center rounded-xl border border-[#5D5FEF]/40 bg-white px-3 py-2 text-xs font-medium text-[#2B2B5F] transition hover:bg-[#5D5FEF]/10 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         Visualizar en el navegador web
                       </button>
+
+                  {volumesPending && (
+                    <p className="mt-2 text-xs text-zinc-500">
+                      Volúmenes aún no disponibles. Reintenta en unos segundos.
+                    </p>
+                  )}
 
                   {downloadError && (
                     <div className="mt-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
