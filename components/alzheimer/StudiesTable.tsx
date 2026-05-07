@@ -34,7 +34,7 @@ export default function StudiesTable({
         <thead>
           <tr className="text-left text-xs font-semibold text-zinc-500">
             <th className="pb-3 pr-4">Paciente N.º</th>
-            <th className="pb-3 pr-4">ID paciente</th>
+            <th className="pb-3 pr-4">Nombre archivo</th>
             <th className="pb-3 pr-4">Predicción</th>
             <th className="pb-3 pr-4">Expira</th>
             <th className="pb-3 pr-4">Precisión</th>

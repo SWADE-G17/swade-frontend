@@ -5,7 +5,10 @@ import { Niivue } from "@niivue/niivue";
 
 type PrimarySlice = "axial" | "coronal" | "sagittal";
 
-type HeatmapColormap = "warm" | "hot" | "jet" | "redyell";
+// Heatmap is fixed to "jet" (azul → rojo). The toggle below either uses the
+// caller's threshold (heatmap visible) or pushes cal_min to 1.0 to hide it.
+const HEATMAP_COLORMAP = "jet";
+const HEATMAP_OFF_THRESHOLD = 1;
 
 const MPR_LAYOUT_LEFT_FRACTION = 0.62;
 
@@ -47,13 +50,6 @@ const SLICE_OPTIONS: { value: PrimarySlice; label: string }[] = [
   { value: "sagittal", label: "Sagital" },
 ];
 
-const COLORMAP_OPTIONS: { value: HeatmapColormap; label: string }[] = [
-  { value: "warm", label: "Warm" },
-  { value: "hot", label: "Hot" },
-  { value: "jet", label: "Jet" },
-  { value: "redyell", label: "Red-Yellow" },
-];
-
 export type NiivueVolumeViewerProps = {
   // Base anatomical volume (e.g. orig.mgz). Painted as the bottom layer.
   baseVolumeUrl: string;
@@ -70,10 +66,9 @@ export type NiivueVolumeViewerProps = {
   // Headers attached to every volume fetch — typically { Authorization: ... }.
   // Niivue passes these through to the underlying fetch call.
   authHeaders?: Record<string, string>;
-  // Initial overlay rendering options. All are tweakable from the UI.
-  initialColormap?: HeatmapColormap;
+  // Initial overlay rendering options.
   initialOpacity?: number; // 0..1, 0.4-0.7 gives good contrast without hiding T1
-  initialThreshold?: number; // cal_min, 0..1; values below are hidden
+  initialThreshold?: number; // cal_min, 0..1; values below are hidden when heatmap is active
   className?: string;
   // Called when a volume load fails so the parent can show a retry UI or
   // surface the error. The viewer also displays its own inline retry button.
@@ -86,7 +81,6 @@ export default function NiivueVolumeViewer({
   overlayVolumeUrl,
   overlayVolumeName,
   authHeaders,
-  initialColormap = "warm",
   initialOpacity = 0.6,
   initialThreshold = 0.2,
   className = "",
@@ -97,12 +91,15 @@ export default function NiivueVolumeViewer({
   const loadGenerationRef = useRef(0);
 
   const [primary, setPrimary] = useState<PrimarySlice>("axial");
-  const [colormap, setColormap] = useState<HeatmapColormap>(initialColormap);
   const [opacity, setOpacity] = useState<number>(initialOpacity);
-  const [threshold, setThreshold] = useState<number>(initialThreshold);
+  const [heatmapActive, setHeatmapActive] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryNonce, setRetryNonce] = useState(0);
+
+  const effectiveThreshold = heatmapActive
+    ? initialThreshold
+    : HEATMAP_OFF_THRESHOLD;
 
   const updateLayout = useCallback((slice: PrimarySlice) => {
     setPrimary(slice);
@@ -170,9 +167,9 @@ export default function NiivueVolumeViewer({
           url: overlayVolumeUrl,
           name: overlayVolumeName,
           headers,
-          colormap,
+          colormap: HEATMAP_COLORMAP,
           opacity,
-          cal_min: threshold,
+          cal_min: effectiveThreshold,
           cal_max: 1.0,
         });
       }
@@ -219,14 +216,6 @@ export default function NiivueVolumeViewer({
   useEffect(() => {
     const nv = nvRef.current;
     if (!nv || !overlayVolumeUrl) return;
-    const overlay = nv.volumes?.[1];
-    if (!overlay) return;
-    nv.setColormap(overlay.id, colormap);
-  }, [colormap, overlayVolumeUrl]);
-
-  useEffect(() => {
-    const nv = nvRef.current;
-    if (!nv || !overlayVolumeUrl) return;
     if (!nv.volumes?.[1]) return;
     nv.setOpacity(1, opacity);
   }, [opacity, overlayVolumeUrl]);
@@ -236,10 +225,10 @@ export default function NiivueVolumeViewer({
     if (!nv || !overlayVolumeUrl) return;
     const overlay = nv.volumes?.[1];
     if (!overlay) return;
-    overlay.cal_min = threshold;
+    overlay.cal_min = effectiveThreshold;
     overlay.cal_max = 1.0;
     nv.updateGLVolume();
-  }, [threshold, overlayVolumeUrl]);
+  }, [effectiveThreshold, overlayVolumeUrl]);
 
   // Release WebGL context and any pending fetches on unmount so navigating
   // away from the study doesn't leak a context or keep the volume request
@@ -280,22 +269,24 @@ export default function NiivueVolumeViewer({
           <>
             <div className="h-6 w-px bg-zinc-200" />
 
-            <label className="flex items-center gap-2 text-xs text-zinc-600">
-              <span className="font-medium">Colormap</span>
-              <select
-                value={colormap}
-                onChange={(e) => setColormap(e.target.value as HeatmapColormap)}
-                className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 focus:border-[#5D5FEF] focus:outline-none"
-              >
-                {COLORMAP_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <button
+              type="button"
+              onClick={() => setHeatmapActive((v) => !v)}
+              aria-pressed={heatmapActive}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                heatmapActive
+                  ? "bg-[#5D5FEF] text-white shadow-sm hover:bg-[#4f51d9]"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+              }`}
+            >
+              {heatmapActive ? "Desactivar heatmap" : "Activar heatmap"}
+            </button>
 
-            <label className="flex items-center gap-2 text-xs text-zinc-600">
+            <label
+              className={`flex items-center gap-2 text-xs text-zinc-600 ${
+                heatmapActive ? "" : "opacity-50"
+              }`}
+            >
               <span className="font-medium">Opacity</span>
               <input
                 type="range"
@@ -304,26 +295,11 @@ export default function NiivueVolumeViewer({
                 step={0.05}
                 value={opacity}
                 onChange={(e) => setOpacity(Number(e.target.value))}
-                className="accent-[#5D5FEF]"
+                disabled={!heatmapActive}
+                className="accent-[#5D5FEF] disabled:cursor-not-allowed"
               />
               <span className="w-8 tabular-nums text-zinc-500">
                 {opacity.toFixed(2)}
-              </span>
-            </label>
-
-            <label className="flex items-center gap-2 text-xs text-zinc-600">
-              <span className="font-medium">Threshold</span>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={threshold}
-                onChange={(e) => setThreshold(Number(e.target.value))}
-                className="accent-[#5D5FEF]"
-              />
-              <span className="w-8 tabular-nums text-zinc-500">
-                {threshold.toFixed(2)}
               </span>
             </label>
           </>

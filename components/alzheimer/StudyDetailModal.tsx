@@ -219,10 +219,13 @@ export default function StudyDetailModal({
                     Resultado
                   </div>
 
-                  <div className="mt-2 text-sm text-zinc-800">
-                    <span className="font-medium">Predicción: </span>
-                    {result ? result.prediction : "Obteniendo resultado…"}
-                  </div>
+                  {result ? (
+                    <PredictionTable raw={result.prediction} />
+                  ) : (
+                    <div className="mt-2 text-sm text-zinc-800">
+                      Obteniendo resultado…
+                    </div>
+                  )}
 
                   {result && (
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -319,5 +322,71 @@ export default function StudyDetailModal({
 
   if (typeof document === "undefined") return null;
   return createPortal(overlay, document.body);
+}
+
+const CLASS_LABELS = ["AD", "MCI", "CN"] as const;
+
+function PredictionTable({ raw }: { raw: string }) {
+  let parsed: { predictedClass: number | null; probabilities: number[] } | null =
+    null;
+  try {
+    const obj = JSON.parse(raw) as {
+      predicted_class?: number;
+      probabilities?: number[];
+    };
+    parsed = {
+      predictedClass:
+        typeof obj.predicted_class === "number" ? obj.predicted_class : null,
+      probabilities: Array.isArray(obj.probabilities) ? obj.probabilities : [],
+    };
+  } catch {
+    parsed = null;
+  }
+
+  if (!parsed) {
+    return (
+      <div className="mt-2 break-words text-xs text-zinc-700">{raw}</div>
+    );
+  }
+
+  const { predictedClass, probabilities } = parsed;
+
+  return (
+    <div className="mt-2 overflow-hidden rounded-lg border border-emerald-200 bg-white">
+      <table className="w-full text-sm">
+        <thead className="bg-emerald-100/60 text-[11px] uppercase tracking-wide text-emerald-900">
+          <tr>
+            <th className="px-3 py-2 text-left font-semibold">Nombre clase</th>
+            <th className="px-3 py-2 text-right font-semibold">
+              Probabilidad de la clase
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-emerald-100">
+          {CLASS_LABELS.map((label, idx) => {
+            const prob = probabilities[idx];
+            const isPredicted = predictedClass === idx;
+            return (
+              <tr
+                key={label}
+                className={
+                  isPredicted
+                    ? "bg-emerald-50 font-semibold text-emerald-900"
+                    : "text-zinc-800"
+                }
+              >
+                <td className="px-3 py-2">{label}</td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {typeof prob === "number"
+                    ? `${(prob * 100).toFixed(2)}%`
+                    : "—"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
