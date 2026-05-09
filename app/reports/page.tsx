@@ -1,24 +1,43 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import ReportsTable, { type ReportRow } from "@/components/reports/ReportsTable";
 import type { StudySummaryResponse } from "@/types/study";
-import { fetchStudies, fetchStudyResult } from "@/lib/studyApi";
-import { downloadBlobFromApi } from "@/lib/download";
+import {
+  fetchReporteBlob,
+  fetchStudies,
+  fetchStudyResult,
+} from "@/lib/studyApi";
+import { triggerDownloadFromUrl } from "@/lib/download";
 import { stripFilenameExtensions } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
 
 export default function ReportsPage() {
+  const router = useRouter();
+  const { signOut } = useAuth();
+
   const [studies, setStudies] = useState<StudySummaryResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [patientSearch, setPatientSearch] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  // Single-expand: only one row's inline PDF viewer is mounted at a time so
+  // we never hold more than one multi-MB blob in memory.
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // undefined = aún no consultado, null = sin PDF, string = ruta del PDF
+  // undefined = aún no consultado, null = sin PDF, string = ruta del PDF.
+  // Driven by GET /resultado.reportPath as the pre-flight signal for which
+  // rows are listed; the actual report bytes are fetched on demand from
+  // GET /estudios/{id}/reporte (the canonical endpoint).
   const [reportPathById, setReportPathById] = useState<
     Record<string, string | null | undefined>
   >({});
   const fetchedReportIdsRef = useRef<Set<string>>(new Set());
+
+  const goToLogin = useCallback(() => {
+    signOut().catch(() => router.replace("/login"));
+  }, [signOut, router]);
 
   const refresh = async () => {
     try {
@@ -86,6 +105,14 @@ export default function ReportsPage() {
     });
   }, [rows, patientSearch]);
 
+  // Collapse the inline viewer if the currently-expanded study disappears
+  // from the visible rows (e.g. user filtered it out or refreshed the list).
+  useEffect(() => {
+    if (!expandedId) return;
+    const stillVisible = filteredRows.some((r) => r.study.id === expandedId);
+    if (!stillVisible) setExpandedId(null);
+  }, [filteredRows, expandedId]);
+
   const headerSubtitle = useMemo(() => {
     const total = rows.length;
     const q = patientSearch.trim();
@@ -94,12 +121,43 @@ export default function ReportsPage() {
     return `${filteredRows.length} de ${total} ${word}`;
   }, [rows.length, filteredRows.length, patientSearch]);
 
+  const handleToggleExpand = useCallback((id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }, []);
+
+  // One-shot blob download from the row-level button. The expanded inline
+  // viewer (if any) keeps its own blob — these two paths intentionally don't
+  // share state, so the row download still works when the viewer isn't open.
   const handleDownload = async (row: ReportRow) => {
     setDownloadError(null);
     setDownloadingId(row.study.id);
     try {
       const filename = `${stripFilenameExtensions(row.study.originalFilename)}.pdf`;
-      await downloadBlobFromApi(row.reportPath, filename);
+      const outcome = await fetchReporteBlob(row.study.id);
+
+      if (outcome.status === 401 || outcome.status === 403) {
+        goToLogin();
+        return;
+      }
+      if (outcome.status === 404) {
+        setDownloadError(
+          "Reporte no disponible todavía. Reintenta en unos segundos.",
+        );
+        return;
+      }
+      if (outcome.status === 502) {
+        setDownloadError(
+          "El servicio de almacenamiento no respondió (502). Reintenta en unos segundos.",
+        );
+        return;
+      }
+
+      const url = URL.createObjectURL(outcome.blob);
+      try {
+        triggerDownloadFromUrl(url, filename);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
     } catch (err) {
       setDownloadError(
         err instanceof Error ? err.message : "No se pudo descargar el informe.",
@@ -126,6 +184,7 @@ export default function ReportsPage() {
             onClick={() => {
               fetchedReportIdsRef.current = new Set();
               setReportPathById({});
+              setExpandedId(null);
               refresh();
             }}
             disabled={loading}
@@ -159,6 +218,8 @@ export default function ReportsPage() {
           rows={filteredRows}
           onDownload={handleDownload}
           downloadingId={downloadingId}
+          expandedId={expandedId}
+          onToggleExpand={handleToggleExpand}
         />
       </div>
     </div>

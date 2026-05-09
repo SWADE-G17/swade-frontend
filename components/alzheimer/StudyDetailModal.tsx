@@ -4,11 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { StudyDetailResponse, StudyResultResponse } from "@/types/study";
-import { downloadBlobFromApi, openPdfInNewTab } from "@/lib/download";
+import { downloadBlobFromApi } from "@/lib/download";
 import {
+  fetchReporteBlob,
   fetchStudyDetail,
   fetchStudyResult,
-  resolveApiPath,
 } from "@/lib/studyApi";
 import { useAuth } from "@/lib/auth";
 import StudyStatusBadge from "@/components/common/StudyStatusBadge";
@@ -28,7 +28,11 @@ export default function StudyDetailModal({
   const [pollingError, setPollingError] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
   const closeStartedRef = useRef(false);
+  // Blob URLs opened by "Ver informe (PDF)" — kept around so the new tab can
+  // still render the PDF, then revoked when the modal closes.
+  const reportBlobUrlsRef = useRef<string[]>([]);
 
   const requestClose = useCallback(() => {
     if (closeStartedRef.current) return;
@@ -121,14 +125,57 @@ export default function StudyDetailModal({
   }, [studyId, signOut, router]);
 
   // heatmapUrl / origUrl from the contract are absolute URLs and may be null
-  // while the worker is still writing the volumes. reportPath is still
-  // relative, so resolveApiPath() is needed for it.
+  // while the worker is still writing the volumes. The report uses its own
+  // canonical endpoint (GET /estudios/{id}/reporte) — reportPath is only used
+  // here as a hint to know whether the worker has produced the PDF yet.
   const heatmapDownloadUrl = result?.heatmapUrl ?? null;
-  const resolvedReportUrl = result?.reportPath
-    ? resolveApiPath(result.reportPath)
-    : null;
+  const hasReport = !!result?.reportPath;
   const volumesPending =
     !!result && (result.heatmapUrl === null || result.origUrl === null);
+
+  const handleViewReport = useCallback(async () => {
+    setDownloadError(null);
+    setReportLoading(true);
+    try {
+      const outcome = await fetchReporteBlob(studyId);
+      if (outcome.status === 401 || outcome.status === 403) {
+        signOut().catch(() => router.replace("/login"));
+        return;
+      }
+      if (outcome.status === 404) {
+        setDownloadError(
+          "Reporte no disponible todavía. Reintenta en unos segundos.",
+        );
+        return;
+      }
+      if (outcome.status === 502) {
+        setDownloadError(
+          "El servicio de almacenamiento no respondió (502). Reintenta en unos segundos.",
+        );
+        return;
+      }
+
+      const blobUrl = URL.createObjectURL(outcome.blob);
+      reportBlobUrlsRef.current.push(blobUrl);
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setDownloadError(
+        err instanceof Error ? err.message : "No se pudo abrir el reporte.",
+      );
+    } finally {
+      setReportLoading(false);
+    }
+  }, [studyId, signOut, router]);
+
+  // Revoke any blob: URLs opened from this modal once the modal unmounts.
+  useEffect(() => {
+    return () => {
+      for (const url of reportBlobUrlsRef.current) {
+        URL.revokeObjectURL(url);
+      }
+      reportBlobUrlsRef.current = [];
+    };
+  }, []);
 
   const overlay = (
     <>
@@ -251,24 +298,14 @@ export default function StudyDetailModal({
                         </button>
                       )}
 
-                      {resolvedReportUrl && result.reportPath && (
+                      {hasReport && (
                         <button
                           type="button"
-                          onClick={() => {
-                            setDownloadError(null);
-                            const reportPath = result.reportPath;
-                            if (!reportPath) return;
-                            openPdfInNewTab(reportPath).catch((err) => {
-                              setDownloadError(
-                                err instanceof Error
-                                  ? err.message
-                                  : "No se pudo abrir el reporte.",
-                              );
-                            });
-                          }}
-                          className="inline-flex items-center justify-center rounded-xl border border-[#5D5FEF]/40 bg-white px-3 py-2 text-xs font-medium text-[#2B2B5F] transition hover:bg-[#5D5FEF]/10"
+                          onClick={handleViewReport}
+                          disabled={reportLoading}
+                          className="inline-flex items-center justify-center rounded-xl border border-[#5D5FEF]/40 bg-white px-3 py-2 text-xs font-medium text-[#2B2B5F] transition hover:bg-[#5D5FEF]/10 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Ver informe (PDF)
+                          {reportLoading ? "Abriendo…" : "Ver informe (PDF)"}
                         </button>
                       )}
                     </div>
