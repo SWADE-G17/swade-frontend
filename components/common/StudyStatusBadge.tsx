@@ -3,7 +3,7 @@ import type { StudyStatus } from "@/types/study";
 function getLabel(status: StudyStatus) {
   switch (status) {
     case "QUEUED":
-      return "en cola";
+      return "En cola";
     case "PROCESSING":
       return "Procesando";
     case "COMPLETED":
