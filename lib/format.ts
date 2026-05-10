@@ -21,3 +21,13 @@ export function formatDateUtc(iso: string) {
   return `${day} ${month} ${year}`;
 }
 
+// Devuelve la fecha de expiración a partir de la fecha de creación,
+// sumando `days` días (por defecto 7). Mismo formato que `formatDateUtc`
+// para mantener consistencia visual en la tabla.
+export function formatExpiryFromCreated(iso: string, days: number = 7) {
+  const created = new Date(iso);
+  if (Number.isNaN(created.getTime())) return "--";
+  const expiry = new Date(created.getTime() + days * 24 * 60 * 60 * 1000);
+  return formatDateUtc(expiry.toISOString());
+}
+

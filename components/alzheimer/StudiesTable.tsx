@@ -2,7 +2,11 @@
 
 import type { ParsedPrediction, StudySummaryResponse } from "@/types/study";
 import StudyStatusBadge from "@/components/common/StudyStatusBadge";
-import { formatDateUtc, stripFilenameExtensions } from "@/lib/format";
+import {
+  formatDateUtc,
+  formatExpiryFromCreated,
+  stripFilenameExtensions,
+} from "@/lib/format";
 
 function DotsIcon({ className }: { className?: string }) {
   return (
@@ -81,7 +85,9 @@ export default function StudiesTable({
                     </span>
                   </td>
                   <td className="py-3 pr-4 text-zinc-800">{predictionLabel}</td>
-                  <td className="py-3 pr-4 text-zinc-500">--</td>
+                  <td className="py-3 pr-4 text-zinc-500">
+                    {formatExpiryFromCreated(s.createdAt)}
+                  </td>
                   <td className="py-3 pr-4 text-zinc-500">{confidenceLabel}</td>
                   <td className="py-3 pr-4 text-zinc-500">
                     {formatDateUtc(s.createdAt)}

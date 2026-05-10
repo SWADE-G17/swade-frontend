@@ -12,6 +12,10 @@ import { parsePrediction } from "@/types/study";
 import { fetchStudyResult, fetchStudies } from "@/lib/studyApi";
 import { stripFilenameExtensions } from "@/lib/format";
 
+// Intervalo del auto-refresh mientras haya estudios en QUEUED/PROCESSING.
+// Una vez todo está COMPLETED/FAILED el polling se detiene solo.
+const POLL_INTERVAL_MS = 10_000;
+
 export default function AlzheimerPredictionsPage() {
   const [studies, setStudies] = useState<StudySummaryResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,22 +29,45 @@ export default function AlzheimerPredictionsPage() {
     Record<string, ParsedPrediction | null | undefined>
   >({});
   const fetchedPredictionIdsRef = useRef<Set<string>>(new Set());
+  // Evita peticiones solapadas cuando un tick del poll cae mientras todavía
+  // hay un fetch en curso (la red puede ser más lenta que el intervalo).
+  const inFlightRef = useRef(false);
 
-  const refresh = async () => {
+  const refresh = async ({ silent = false }: { silent?: boolean } = {}) => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await fetchStudies();
       setStudies(data);
     } catch {
       // keep previous list on failure
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      inFlightRef.current = false;
     }
   };
 
   useEffect(() => {
     refresh();
   }, []);
+
+  // Auto-refresh: mientras haya estudios pendientes, repolea la lista en
+  // segundo plano. El efecto se reprograma cada vez que cambia `studies`,
+  // así que en cuanto todo queda COMPLETED/FAILED el intervalo se limpia
+  // y deja de pegarle al backend.
+  useEffect(() => {
+    const hasPending = studies.some(
+      (s) => s.status === "QUEUED" || s.status === "PROCESSING",
+    );
+    if (!hasPending) return;
+
+    const id = setInterval(() => {
+      refresh({ silent: true });
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(id);
+  }, [studies]);
 
   useEffect(() => {
     const completed = studies.filter((s) => s.status === "COMPLETED");
@@ -99,7 +126,7 @@ export default function AlzheimerPredictionsPage() {
             <button
               type="button"
               className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={refresh}
+              onClick={() => refresh()}
               disabled={loading}
             >
               {loading ? "Actualizando…" : "Actualizar"}
@@ -140,7 +167,7 @@ export default function AlzheimerPredictionsPage() {
           onClose={() => setUploadOpen(false)}
           onCreated={() => {
             fetchedPredictionIdsRef.current = new Set();
-            refresh();
+            void refresh();
           }}
         />
       )}
