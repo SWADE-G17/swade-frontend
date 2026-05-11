@@ -109,15 +109,15 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: IconDashboard, roles: ["Administrador"] },
+  { href: "/dashboard", label: "Panel", icon: IconDashboard, roles: ["Administrador"] },
   {
     href: "/alzheimer-predictions",
-    label: "Alzheimer predictions",
+    label: "Predicciones Alzheimer",
     icon: IconBrain,
     roles: ["Clínico"],
   },
-  { href: "/users", label: "Users", icon: IconUsers, roles: ["Administrador"] },
-  { href: "/reports", label: "Reports", icon: IconReport, roles: ["Clínico"] },
+  { href: "/users", label: "Usuarios", icon: IconUsers, roles: ["Administrador"] },
+  { href: "/reports", label: "Informes", icon: IconReport, roles: ["Clínico"] },
 ];
 
 export default function Sidebar() {
@@ -128,9 +128,9 @@ export default function Sidebar() {
   const visibleNavItems = navItems.filter((item) => role && item.roles.includes(role));
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-r border-zinc-200 bg-white">
+    <aside className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-y-auto border-r border-zinc-200 bg-white">
       <div className="flex items-start gap-2 px-4 py-4">
-        <img src="/images/logo.png" alt="Logo" className="w-40 h-10" />
+        <img src="/images/logo.png" alt="SWADE" className="w-40 h-10" />
         <div className="flex-1" />
       </div>
 
@@ -163,7 +163,7 @@ export default function Sidebar() {
 
       <div className="px-4">
         <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-          Main Menu
+          Menú principal
         </div>
 
         <nav className="mt-3 space-y-2">

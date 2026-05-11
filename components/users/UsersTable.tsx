@@ -55,11 +55,11 @@ export default function UsersTable({
       <table className="min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr className="text-left text-xs font-semibold text-zinc-500">
-            <th className="pb-3 pr-4">Username</th>
-            <th className="pb-3 pr-4">Email</th>
-            <th className="pb-3 pr-4">Role</th>
-            <th className="pb-3 pr-4">Created</th>
-            <th className="pb-3 pr-4">Updated</th>
+            <th className="pb-3 pr-4">Usuario</th>
+            <th className="pb-3 pr-4">Correo</th>
+            <th className="pb-3 pr-4">Rol</th>
+            <th className="pb-3 pr-4">Creado</th>
+            <th className="pb-3 pr-4">Actualizado</th>
             <th className="pb-3 pr-2 text-right"> </th>
           </tr>
         </thead>
@@ -70,7 +70,7 @@ export default function UsersTable({
                 colSpan={6}
                 className="py-10 text-center text-sm text-zinc-500"
               >
-                No users found.
+                No se encontraron usuarios.
               </td>
             </tr>
           ) : (
@@ -101,7 +101,7 @@ export default function UsersTable({
                     <button
                       type="button"
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-                      aria-label={`Edit ${u.username ?? u.email}`}
+                      aria-label={`Editar ${u.username ?? u.email ?? "usuario"}`}
                       onClick={() => onEdit(u)}
                     >
                       <PencilIcon className="h-4 w-4" />
@@ -109,7 +109,7 @@ export default function UsersTable({
                     <button
                       type="button"
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-red-500 hover:bg-red-50"
-                      aria-label={`Delete ${u.username ?? u.email}`}
+                      aria-label={`Eliminar ${u.username ?? u.email ?? "usuario"}`}
                       onClick={() => onDelete(u)}
                     >
                       <TrashIcon className="h-4 w-4" />

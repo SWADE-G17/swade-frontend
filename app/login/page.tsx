@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getDefaultRoute, type UserRole } from "@/lib/auth";
 
@@ -43,7 +42,7 @@ function EyeOffIcon({
       onClick={onClick}
       role="button"
       tabIndex={0}
-      aria-label="Toggle password visibility"
+      aria-label="Mostrar u ocultar contraseña"
     >
       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
       <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
@@ -72,7 +71,7 @@ function EyeIcon({
       onClick={onClick}
       role="button"
       tabIndex={0}
-      aria-label="Toggle password visibility"
+      aria-label="Mostrar u ocultar contraseña"
     >
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
@@ -139,7 +138,7 @@ export default function LoginPage() {
             <div className="relative">
               <input
                 type="email"
-                placeholder="Usuario"
+                placeholder="Correo electrónico"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -181,7 +180,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full rounded-md bg-[#1a5c6b] py-3 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-[#1d6d7e] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Ingresando..." : "Entrar"}
+              {loading ? "Iniciando sesión…" : "Entrar"}
             </button>
           </form>
         </div>

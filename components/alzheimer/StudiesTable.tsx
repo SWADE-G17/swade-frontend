@@ -1,8 +1,12 @@
 "use client";
 
-import type { StudySummaryResponse } from "@/types/study";
+import type { ParsedPrediction, StudySummaryResponse } from "@/types/study";
 import StudyStatusBadge from "@/components/common/StudyStatusBadge";
-import { formatDateUtc } from "@/lib/format";
+import {
+  formatDateUtc,
+  formatExpiryFromCreated,
+  stripFilenameExtensions,
+} from "@/lib/format";
 
 function DotsIcon({ className }: { className?: string }) {
   return (
@@ -25,7 +29,7 @@ export default function StudiesTable({
   onOpenDetails,
 }: {
   studies: StudySummaryResponse[];
-  predictionById: Record<string, string | null | undefined>;
+  predictionById: Record<string, ParsedPrediction | null | undefined>;
   onOpenDetails: (id: string) => void;
 }) {
   return (
@@ -33,13 +37,13 @@ export default function StudiesTable({
       <table className="min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr className="text-left text-xs font-semibold text-zinc-500">
-            <th className="pb-3 pr-4">Patient ID</th>
-            <th className="pb-3 pr-4">Patient Name</th>
-            <th className="pb-3 pr-4">Prediction</th>
-            <th className="pb-3 pr-4">Expires</th>
-            <th className="pb-3 pr-4">Precision</th>
-            <th className="pb-3 pr-4">Created</th>
-            <th className="pb-3 pr-4">Status</th>
+            <th className="pb-3 pr-4">Paciente N.º</th>
+            <th className="pb-3 pr-4">Nombre archivo</th>
+            <th className="pb-3 pr-4">Predicción</th>
+            <th className="pb-3 pr-4">Expira</th>
+            <th className="pb-3 pr-4">Precisión</th>
+            <th className="pb-3 pr-4">Creado</th>
+            <th className="pb-3 pr-4">Estado</th>
             <th className="pb-3 pr-2 text-right"> </th>
           </tr>
         </thead>
@@ -50,17 +54,22 @@ export default function StudiesTable({
                 colSpan={8}
                 className="py-10 text-center text-sm text-zinc-500"
               >
-                No hay estudios aún. Usa “+ New Prediction”.
+                No hay estudios aún. Usa «+ Nueva predicción».
               </td>
             </tr>
           ) : (
             studies.map((s) => {
-              const prediction =
+              const parsed = predictionById[s.id];
+              const predictionLabel =
                 s.status === "FAILED"
                   ? "Error"
                   : s.status === "COMPLETED"
-                    ? predictionById[s.id] ?? "Pending"
-                    : "Pending";
+                    ? parsed?.predictedName ?? "Pendiente"
+                    : "Pendiente";
+              const confidenceLabel =
+                s.status === "COMPLETED" && parsed
+                  ? `${(parsed.confidence * 100).toFixed(2)}%`
+                  : "--";
 
               return (
                 <tr
@@ -72,12 +81,14 @@ export default function StudiesTable({
                   </td>
                   <td className="py-3 pr-4">
                     <span className="block max-w-[260px] truncate font-medium text-zinc-800">
-                      {s.originalFilename}
+                      {stripFilenameExtensions(s.originalFilename)}
                     </span>
                   </td>
-                  <td className="py-3 pr-4 text-zinc-800">{prediction}</td>
-                  <td className="py-3 pr-4 text-zinc-500">--</td>
-                  <td className="py-3 pr-4 text-zinc-500">--</td>
+                  <td className="py-3 pr-4 text-zinc-800">{predictionLabel}</td>
+                  <td className="py-3 pr-4 text-zinc-500">
+                    {formatExpiryFromCreated(s.createdAt)}
+                  </td>
+                  <td className="py-3 pr-4 text-zinc-500">{confidenceLabel}</td>
                   <td className="py-3 pr-4 text-zinc-500">
                     {formatDateUtc(s.createdAt)}
                   </td>
@@ -88,7 +99,7 @@ export default function StudiesTable({
                     <button
                       type="button"
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-                      aria-label="Study actions"
+                      aria-label="Acciones del estudio"
                       onClick={() => onOpenDetails(s.id)}
                     >
                       <DotsIcon className="h-4 w-4" />

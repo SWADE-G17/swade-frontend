@@ -24,7 +24,7 @@ export default function DeleteUserConfirmModal({
       onDeleted();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unexpected error.");
+      setError(err instanceof Error ? err.message : "Error inesperado.");
     } finally {
       setDeleting(false);
     }
@@ -43,13 +43,13 @@ export default function DeleteUserConfirmModal({
         className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-lg"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <h3 className="text-sm font-semibold text-zinc-900">Delete User</h3>
+        <h3 className="text-sm font-semibold text-zinc-900">Eliminar usuario</h3>
         <p className="mt-2 text-sm text-zinc-600">
-          Are you sure you want to delete{" "}
+          ¿Seguro que deseas eliminar a{" "}
           <span className="font-medium text-zinc-900">
             {user.username ?? user.email ?? user.id}
           </span>
-          ? This action cannot be undone.
+          ? Esta acción no se puede deshacer.
         </p>
 
         {error && (
@@ -65,14 +65,14 @@ export default function DeleteUserConfirmModal({
             disabled={deleting}
             className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {deleting ? "Deleting..." : "Delete"}
+            {deleting ? "Eliminando…" : "Eliminar"}
           </button>
           <button
             type="button"
             onClick={onClose}
             className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
           >
-            Cancel
+            Cancelar
           </button>
         </div>
       </div>

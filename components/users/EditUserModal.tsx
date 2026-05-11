@@ -37,7 +37,7 @@ export default function EditUserModal({
       onUpdated();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unexpected error.");
+      setError(err instanceof Error ? err.message : "Error inesperado.");
     } finally {
       setSaving(false);
     }
@@ -58,7 +58,7 @@ export default function EditUserModal({
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Edit User</h3>
+            <h3 className="text-sm font-semibold text-zinc-900">Editar usuario</h3>
             <p className="mt-1 text-xs text-zinc-500">
               {user.email ?? user.id}
             </p>
@@ -67,7 +67,7 @@ export default function EditUserModal({
             type="button"
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-            aria-label="Close"
+            aria-label="Cerrar"
           >
             ×
           </button>
@@ -75,7 +75,7 @@ export default function EditUserModal({
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            <span className="font-medium">Username</span>
+            <span className="font-medium">Nombre de usuario</span>
             <input
               type="text"
               required
@@ -87,7 +87,7 @@ export default function EditUserModal({
           </label>
 
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            <span className="font-medium">Role</span>
+            <span className="font-medium">Rol</span>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as UsuarioRole)}
@@ -112,14 +112,14 @@ export default function EditUserModal({
             disabled={!canSubmit}
             className="inline-flex items-center justify-center rounded-xl bg-[#5D5FEF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4f51d9] disabled:cursor-not-allowed disabled:bg-[#5D5FEF]/60"
           >
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? "Guardando…" : "Guardar cambios"}
           </button>
           <button
             type="button"
             onClick={onClose}
             className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
           >
-            Cancel
+            Cancelar
           </button>
         </form>
       </div>
