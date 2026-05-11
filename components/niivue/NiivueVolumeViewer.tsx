@@ -82,7 +82,7 @@ export default function NiivueVolumeViewer({
   overlayVolumeName,
   authHeaders,
   initialOpacity = 0.6,
-  initialThreshold = 0.2,
+  initialThreshold = 0,
   className = "",
   onLoadError,
 }: NiivueVolumeViewerProps) {
