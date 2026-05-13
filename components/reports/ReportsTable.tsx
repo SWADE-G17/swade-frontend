@@ -1,7 +1,7 @@
 "use client";
 
 import type { StudySummaryResponse } from "@/types/study";
-import { stripFilenameExtensions } from "@/lib/format";
+import { formatDateUtc, stripFilenameExtensions } from "@/lib/format";
 import ReportPdfViewer from "@/components/reports/ReportPdfViewer";
 
 function DownloadIcon({ className }: { className?: string }) {
@@ -74,6 +74,7 @@ export default function ReportsTable({
             <th className="w-8 pb-3" aria-hidden></th>
             <th className="pb-3 pr-4">Paciente N.º</th>
             <th className="pb-3 pr-4">Nombre archivo</th>
+            <th className="pb-3 pr-4">Creado</th>
             <th className="pb-3 pr-2 text-right"> </th>
           </tr>
         </thead>
@@ -81,7 +82,7 @@ export default function ReportsTable({
           {rows.length === 0 ? (
             <tr>
               <td
-                colSpan={4}
+                colSpan={5}
                 className="py-10 text-center text-sm text-zinc-500"
               >
                 No hay informes disponibles aún.
@@ -155,6 +156,9 @@ function RowGroup({
             {patientName}
           </span>
         </td>
+        <td className="py-3 pr-4 text-zinc-500">
+          {formatDateUtc(study.createdAt)}
+        </td>
         <td className="py-3 pr-2 text-right">
           <button
             type="button"
@@ -174,7 +178,7 @@ function RowGroup({
 
       {isExpanded && (
         <tr className="border-t border-zinc-100 bg-zinc-50/40">
-          <td colSpan={4} className="px-3 py-4">
+          <td colSpan={5} className="px-3 py-4">
             <ReportPdfViewer
               studyId={study.id}
               downloadFilename={`${patientName}.pdf`}
